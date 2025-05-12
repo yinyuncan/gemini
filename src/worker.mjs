@@ -215,7 +215,6 @@ async function handleCompletions (req, apiKey) {
 
 // 新增处理图片生成的函数
 async function handleGenerateImage (req, apiKey) {
-    const MODEL = "gemini-2.0-flash-preview-image-generation";
     const body = {
       contents: [{
         parts: [
@@ -229,7 +228,7 @@ async function handleGenerateImage (req, apiKey) {
   
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`, {
       method: "POST",
-      headers: {"Content-Type": "application/json" },
+      headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
       body: JSON.stringify(body)
     });
   
@@ -237,7 +236,7 @@ async function handleGenerateImage (req, apiKey) {
       throw new HttpError(`generate image失败: ${response.statusText}`, response.status);
     }
   
-    data = await response.text();
+    const data = await response.text();
    
     return new Response(data, fixCors(response));
   }

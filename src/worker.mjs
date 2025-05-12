@@ -237,9 +237,9 @@ async function handleGenerateImage (req, apiKey) {
       throw new HttpError(`generate image失败: ${response.statusText}`, response.status);
     }
   
-    body = await response.text();
+    data = await response.text();
    
-    return new Response(body, fixCors(response));
+    return new Response(data, fixCors(response));
   }
   
 const adjustProps = (schemaPart) => {

@@ -229,7 +229,7 @@ async function handleGenerateImage (req, apiKey) {
   
     const response = await fetch(`${BASE_URL}/${API_VERSION}/models/${MODEL}:generateContent?key=${apiKey}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
       body: JSON.stringify(body)
     });
   

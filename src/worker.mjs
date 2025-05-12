@@ -234,7 +234,7 @@ async function handleGenerateImage (req, apiKey) {
     });
   
     if (!response.ok) {
-      throw new HttpError(`Failed to generate image: ${response.statusText}`, response.status);
+      throw new HttpError(`generate image失败: ${response.statusText}`, response.status);
     }
   
     body = await response.text();

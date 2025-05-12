@@ -31,6 +31,10 @@ export default {
           assert(request.method === "GET");
           return handleModels(apiKey)
             .catch(errHandler);
+        case pathname.endsWith("/generate-image"):
+          assert(request.method === "POST");
+          return handleGenerateImage(await request.json(), apiKey)
+            .catch(errHandler);
         default:
           throw new HttpError("404 Not Found", 404);
       }
@@ -208,7 +212,44 @@ async function handleCompletions (req, apiKey) {
   }
   return new Response(body, fixCors(response));
 }
-
+async function handleGenerateImage (req, apiKey) {
+    const MODEL = "gemini-2.0-flash-preview-image-generation";
+    const body = {
+      contents: [{
+        parts: [
+          { text: req.prompt }
+        ]
+      }],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"]
+      }
+    };
+  
+    const response = await fetch(`${BASE_URL}/${API_VERSION}/models/${MODEL}:generateContent`, {
+      method: "POST",
+      headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
+      body: JSON.stringify(body)
+    });
+  
+    if (!response.ok) {
+      throw new HttpError(`Failed to generate image: ${response.statusText}`, response.status);
+    }
+  
+    const data = await response.json();
+    const imageData = data.candidates[0]?.content?.parts.find(part => part.inlineData)?.inlineData;
+  
+    if (!imageData) {
+      throw new HttpError("No image data found in the response", 500);
+    }
+  
+    const buffer = Buffer.from(imageData.data, 'base64');
+    return new Response(buffer, {
+      headers: {
+        ...fixCors(response).headers,
+        'Content-Type': imageData.mimeType
+      }
+    });
+  }
 const adjustProps = (schemaPart) => {
   if (typeof schemaPart !== "object" || schemaPart === null) {
     return;

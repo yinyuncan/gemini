@@ -212,6 +212,8 @@ async function handleCompletions (req, apiKey) {
   }
   return new Response(body, fixCors(response));
 }
+
+// 新增处理图片生成的函数
 async function handleGenerateImage (req, apiKey) {
     const MODEL = "gemini-2.0-flash-preview-image-generation";
     const body = {
@@ -225,9 +227,9 @@ async function handleGenerateImage (req, apiKey) {
       }
     };
   
-    const response = await fetch(`${BASE_URL}/${API_VERSION}/models/${MODEL}:generateContent`, {
+    const response = await fetch(`${BASE_URL}/${API_VERSION}/models/${MODEL}:generateContent?key=${apiKey}`, {
       method: "POST",
-      headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
   
@@ -235,21 +237,11 @@ async function handleGenerateImage (req, apiKey) {
       throw new HttpError(`Failed to generate image: ${response.statusText}`, response.status);
     }
   
-    const data = await response.json();
-    const imageData = data.candidates[0]?.content?.parts.find(part => part.inlineData)?.inlineData;
-  
-    if (!imageData) {
-      throw new HttpError("No image data found in the response", 500);
-    }
-  
-    const buffer = Buffer.from(imageData.data, 'base64');
-    return new Response(buffer, {
-      headers: {
-        ...fixCors(response).headers,
-        'Content-Type': imageData.mimeType
-      }
-    });
+    body = await response.text();
+   
+    return new Response(body, fixCors(response));
   }
+  
 const adjustProps = (schemaPart) => {
   if (typeof schemaPart !== "object" || schemaPart === null) {
     return;
